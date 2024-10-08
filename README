@@ -1,0 +1,756 @@
+No arquivo .rar tem todos os códigos utilizados para o jogo funcionar, muitos objetos tem códigos de 3 linhas, então vou deixar aki os nomes e os códigos mais importantes
+
+script scr_player_andando
+-----------------------------------------------------------------------------------
+#region Funções
+	#region Andando
+function scr_player_andando(){	
+dir = floor(point_direction(x,y,mouse_x,mouse_y) /45);	
+	#region Manual
+	#region Troca De Arma
+if mouse_wheel_down() and arma > 1 and espada = true and arco = true{
+	arma -= 1
+}else if mouse_wheel_down() and arma < 2 and espada = true and arco = true{
+	arma += 1
+}else if mouse_wheel_up() and arma > 1 and espada = true and arco = true{
+	arma -= 1
+}else if mouse_wheel_up() and arma < 2 and espada = true and arco = true{
+	arma += 1
+}
+	#endregion
+	#region Tomar Poção
+	if keyboard_check_pressed(ord("H")) and pocoes > 0 and vida < max_vida{
+		pocoes -= 1
+	vida = max_vida;}
+	#endregion
+	#region Spawn De Inimigos
+	if keyboard_check_pressed(ord("L")){
+instance_create_layer(obj_player.x,obj_player.y - 50,"Instances_1",obj_slime)}
+	#endregion
+	#region Cansado
+	if estamina <= 1{
+	cansado = true
+		obj_player.veloc_atual = 0.5
+	
+	}else if estamina >= 20 and cansado = true{
+	cansado = false
+		obj_player.veloc_atual = 1
+	}
+	
+	#endregion
+	#region Correr
+	if keyboard_check(vk_lshift) and cansado = false and hitboxskill = false and (estamina > 1) and (keyboard_check(ord("D")) or keyboard_check(ord("A")) or keyboard_check(ord("S")) or keyboard_check(ord("W"))){
+estamina -=1
+obj_player.veloc_usada = veloc_atual * 2
+correndo = true
+}else{
+obj_player.veloc_usada = veloc_atual
+correndo = false
+}
+#endregion
+	#region Movimentos
+	direita= keyboard_check(ord("D"));
+	cima= keyboard_check(ord("W"));
+	esquerda= keyboard_check(ord("A"));
+	baixo= keyboard_check(ord("S"));
+
+hveloc = (direita - esquerda) * veloc_usada;
+
+if place_meeting(x+hveloc,y,obj_wall){
+while !place_meeting(x+sign(hveloc),y,obj_wall){
+x += sign(hveloc)
+}
+    hveloc = 0;
+}
+
+x+=hveloc;
+
+vveloc = (baixo - cima) * veloc_usada;
+
+if place_meeting(x,y+vveloc,obj_wall){
+while !place_meeting(x,y+sign(vveloc),obj_wall){
+y += sign(vveloc)
+}
+
+    vveloc = 0;
+}
+
+y+=vveloc;
+	#endregion
+	#region Dash
+	if mouse_check_button_pressed(mb_right) and estamina > 10 and dash = true and anima = false and cansado = false{
+	dash_sendo_usado = true
+	estamina -= 10
+    alarm[0] = 8;
+    dash_dir = point_direction(x,y,mouse_x,mouse_y)
+    estado = scr_player_dash;
+	}else if mouse_check_button_pressed(mb_right) and estamina <= 10 and dash = true and anima = false and cansado = false{
+	dash_sendo_usado = true
+	estamina = 0
+    alarm[0] = 8;
+    dash_dir = point_direction(x,y,mouse_x,mouse_y)
+    estado = scr_player_dash;
+	}
+	#endregion
+	#region Ataques Espada
+	//Espada\/
+	if mouse_check_button_pressed(mb_left) and arma = 1 and coldown = 0 and espada = true and hitboxskill = false{
+		audio_play_sound(SwordAtackEfect,1,false,1)
+		anima = true;
+		image_index = 0;
+		coldown = 2.2
+switch dir{
+	//Direita
+	default:
+		sprite_index = spr_ataque_espada_direita;
+	break;
+	//Cima
+	case 1:
+		sprite_index = spr_ataque_espada_cima
+	break;
+	//Cima
+	case 2:
+		sprite_index = spr_ataque_espada_cima
+	break;
+	//Esquerda
+	case 3:
+		sprite_index = spr_ataque_espada_esquerda
+	break;
+	//Esquerda
+	case 4:
+		sprite_index = spr_ataque_espada_esquerda
+	break;
+	//Baixo
+	case 5:
+		sprite_index = spr_ataque_espada_baixo
+	break;
+	//Baixo
+	case 6:
+		sprite_index = spr_ataque_espada_baixo
+	break;
+	//Direita
+	case 7:
+		sprite_index = spr_ataque_espada_direita;
+	break;
+}
+	estado = scr_player_atacando;
+	//Arco \/
+}else if mouse_check_button_pressed(mb_left) and arma = 2 and bullet >= 1 and anima = false and arco = true{
+	anima = true;
+		mira = point_direction(x,y,mouse_x,mouse_y)
+		image_index = 0;
+		coldown = 2.2
+	switch dir{
+	//Direita
+	default:
+		sprite_index = spr_atirando_direita;
+	break;
+	//Cima
+	case 1:
+		sprite_index = spr_atirando_cima
+	break;
+	//Cima
+	case 2:
+		sprite_index = spr_atirando_cima
+	break;
+	//Esquerda
+	case 3:
+		sprite_index = spr_atirando_esquerda
+	break;
+	//Esquerda
+	case 4:
+		sprite_index = spr_atirando_esquerda
+	break;
+	//Baixo
+	case 5:
+		sprite_index = spr_atirando_baixo
+	break;
+	//Baixo
+	case 6:
+		sprite_index = spr_atirando_baixo
+	break;
+	//Direita
+	case 7:
+		sprite_index = spr_atirando_direita;
+	break;
+	}
+	estado = scr_player_atirando;
+}
+	
+	#endregion
+  
+	if giro = true{
+	#region Skill Fogo
+			if hitboxskill = true and hitboxskill2 = true and girofogo = true{
+	instance_create_layer(x, y, "Instances", obj_hitbox_skill);
+	rodando = true
+	hitboxskill = false
+	hitboxskill2 = false
+	}
+	
+	if mouse_check_button_released(mb_middle) and hitboxskill2 = false and girofogo = true{
+	coldownskill = 10
+	alarm[1]= 1
+	anima = false
+	}
+	
+	if arma = 2 and hitboxskill2 = false and girofogo = true{
+	coldownskill = 10
+	alarm[1]= 1
+	anima = false
+	}
+		
+	if estamina > 9 and estamina < 11 and hitboxskill2 = false and girofogo = true{
+	coldownskill = 10
+	anima = false
+	alarm[1]= 1
+	}
+		
+	if mouse_check_button(mb_middle) and coldownskill = 0 and arma = 1 and espada = true and estamina > 10 and girofogo = true{
+		anima = true
+		hitboxskill = true
+		estamina -= 0.3*(max_estamina/100)
+		sprite_index = spr_giro_fogo
+		veloc_atual = 3
+		alarm[1]= 1
+		veloc_skill = false
+		
+	}else if hitboxskill2 = false and veloc_skill == true and girofogo = true or anima = false and veloc_skill == true and girofogo = true{
+		
+		instance_destroy(obj_hitbox_skill)
+	switch dir{
+	//Direita
+	default:
+		sprite_index = spr_player_respirando_direita
+	break;
+	//Cima
+	case 1:
+		sprite_index = spr_player_respirando_cima
+	break;
+	//Cima
+	case 2:
+		sprite_index = spr_player_respirando_cima
+	break;
+	//Esquerda
+	case 3:
+		sprite_index = spr_player_respirando_esquerda
+	break;
+	//Esquerda
+	case 4:
+		sprite_index = spr_player_respirando_esquerda
+	break;
+	//Baixo
+	case 5:
+		sprite_index = spr_player_respirando_frente
+	break;
+	//Baixo
+	case 6:
+		sprite_index = spr_player_respirando_frente
+	break;
+	//Direita
+	case 7:
+		sprite_index = spr_player_respirando_direita
+	break;
+	}
+	atacar = false
+	veloc_skill = true
+	hitboxskill2= true
+	}else if veloc_skill == false{
+	veloc_atual = 1;	
+	veloc_skill = true
+	}
+	
+	#endregion
+	#region Skill
+	
+		if hitboxskill = true and hitboxskill2 = true and girofogo = false{
+	instance_create_layer(x, y, "Instances", obj_hitbox_skill);
+	rodando = true
+	hitboxskill = false
+	hitboxskill2 = false
+
+	}
+	
+		if arma = 2 and hitboxskill2 = false and girofogo = false{
+	coldownskill = 10
+	alarm[1]= 1
+	anima = false
+
+	}
+	
+	if mouse_check_button_released(mb_middle) and hitboxskill2 = false and girofogo = false{
+	coldownskill = 10
+	alarm[1]= 1
+	anima = false
+
+	}
+	
+	if estamina > 9 and estamina < 11 and hitboxskill2 = false and girofogo = false{
+	coldownskill = 10
+	anima = false
+	alarm[1]= 1
+	}
+	
+	
+	
+	if mouse_check_button(mb_middle) and coldownskill = 0 and arma = 1 and espada = true and estamina > 10 and girofogo = false{
+		anima = true
+		hitboxskill = true
+		estamina -= 0.3*(max_estamina/100)
+		sprite_index = spr_giro
+		veloc_atual = 0.5
+		alarm[1]= 1
+		veloc_skill = false
+		
+	}else if hitboxskill2 = false and veloc_skill == true and girofogo = false or anima = false and veloc_skill == true and girofogo = false{
+		
+		instance_destroy(obj_hitbox_skill)
+	switch dir{
+	//Direita
+	default:
+		sprite_index = spr_player_respirando_direita
+	break;
+	//Cima
+	case 1:
+		sprite_index = spr_player_respirando_cima
+	break;
+	//Cima
+	case 2:
+		sprite_index = spr_player_respirando_cima
+	break;
+	//Esquerda
+	case 3:
+		sprite_index = spr_player_respirando_esquerda
+	break;
+	//Esquerda
+	case 4:
+		sprite_index = spr_player_respirando_esquerda
+	break;
+	//Baixo
+	case 5:
+		sprite_index = spr_player_respirando_frente
+	break;
+	//Baixo
+	case 6:
+		sprite_index = spr_player_respirando_frente
+	break;
+	//Direita
+	case 7:
+		sprite_index = spr_player_respirando_direita
+	break;
+	}
+	atacar = false
+	veloc_skill = true
+	hitboxskill2= true
+	}else if veloc_skill == false{
+	veloc_atual = 1;	
+	veloc_skill = true
+	}
+	}
+	
+	#endregion		
+}
+	#endregion
+
+#endregion
+	#region Dash
+function scr_player_dash(){
+    hveloc = lengthdir_x(dash_veloc,dash_dir);
+    vveloc = lengthdir_y(dash_veloc,dash_dir);
+{
+    if ! place_meeting ( x + hveloc ,y + vveloc , obj_wall){
+	x +=hveloc
+	y +=vveloc
+	};
+}	
+
+    var _inst = instance_create_layer(x, y, "Instances", obj_dash);
+    _inst.sprite_index = sprite_index;
+ }
+  #endregion
+	#region Ataques Espada
+function scr_player_atacando(){
+	if image_index >= 2{
+	if atacar == false{	
+	switch dir{
+
+	//Direita
+	default:
+		instance_create_layer(x + 15, y, "Instances", obj_player_hitbox);
+	break;
+	//Cima
+	case 1:
+		instance_create_layer(x, y - 15, "Instances", obj_player_hitbox);
+	break;
+	//Cima
+	case 2:
+		instance_create_layer(x, y - 15, "Instances", obj_player_hitbox);
+	break;
+	//Esquerda
+	case 3:
+		instance_create_layer(x - 15, y, "Instances", obj_player_hitbox);
+	break;
+	//Esquerda
+	case 4:
+		instance_create_layer(x - 15, y, "Instances", obj_player_hitbox);
+	break;
+	//Baixo
+	case 5:
+		instance_create_layer(x, y + 15, "Instances", obj_player_hitbox);
+	break;
+	//Baixo
+	case 6:
+		instance_create_layer(x, y + 15, "Instances", obj_player_hitbox);
+	break;
+	//Direita
+	case 7:
+		instance_create_layer(x + 15, y, "Instances", obj_player_hitbox);
+	break;
+	
+	}
+	}}
+	if image_index >= 2{
+	estado = scr_player_andando;
+	switch dir{
+	//Direita
+	default:
+		sprite_index = spr_player_respirando_direita
+	break;
+	//Cima
+	case 1:
+		sprite_index = spr_player_respirando_cima
+	break;
+	//Cima
+	case 2:
+		sprite_index = spr_player_respirando_cima
+	break;
+	//Esquerda
+	case 3:
+		sprite_index = spr_player_respirando_esquerda
+	break;
+	//Esquerda
+	case 4:
+		sprite_index = spr_player_respirando_esquerda
+	break;
+	//Baixo
+	case 5:
+		sprite_index = spr_player_respirando_frente
+	break;
+	//Baixo
+	case 6:
+		sprite_index = spr_player_respirando_frente
+	break;
+	//Direita
+	case 7:
+		sprite_index = spr_player_respirando_direita
+	break;
+	}
+	atacar = false
+	anima = false
+}} 
+#endregion
+	#region Atirando
+	function scr_player_atirando(){
+	if image_index >= 2{
+	if atacar == false{	 
+    bullet -= 1
+	audio_play_sound(arcoeflecha,1,false)
+	instance_create_layer(obj_player.x ,obj_player.y ,"Instances_1", obj_bullet);
+	alarm[0] = 1}}
+	if image_index >= 2{
+	estado = scr_player_andando;
+	switch dir{
+	//Direita
+	default:
+		sprite_index = spr_player_respirando_direita
+	break;
+	//Cima
+	case 1:
+		sprite_index = spr_player_respirando_cima
+	break;
+	//Cima
+	case 2:
+		sprite_index = spr_player_respirando_cima
+	break;
+	//Esquerda
+	case 3:
+		sprite_index = spr_player_respirando_esquerda
+	break;
+	//Esquerda
+	case 4:
+		sprite_index = spr_player_respirando_esquerda
+	break;
+	//Baixo
+	case 5:
+		sprite_index = spr_player_respirando_frente
+	break;
+	//Baixo
+	case 6:
+		sprite_index = spr_player_respirando_frente
+	break;
+	//Direita
+	case 7:
+		sprite_index = spr_player_respirando_direita
+	break;
+	}
+	atacar = false
+	anima = false
+}} 
+	#endregion
+   #endregion
+-----------------------------------------------------------------------------------
+
+obj_player  Step
+-----------------------------------------------------------------------------------
+
+if keyboard_check_pressed(ord("B")){
+
+room_goto(rm_boss_room);
+instance_destroy(obj_camera)
+obj_player.alarm[6] = 1
+obj_pause.boss = true
+
+}
+
+if keyboard_check_pressed(vk_subtract){
+
+vida -= 1
+
+}
+
+script_execute(estado)
+
+if rodando = false and s = 0{
+audio_play_sound(Sword_Skill,1,true,0.1)
+s = 1
+som = 0.2
+}else if rodando = true{
+som = 0
+audio_stop_sound(Sword_Skill)
+s = 0
+}
+
+if som > 0 and som < 10{
+som += 0.2
+}
+
+audio_sound_gain(Sword_Skill,som,0)
+
+if slimes > 5{
+slimes = 5
+}
+
+	if estamina < max_estamina{
+	estamina += level/10}
+	
+		if coldown > 0{
+	coldown -= 0.1}
+
+if giro = true	{
+
+
+if girofogotimer >0{
+girofogotimer -= 0.1
+}else if girofogotimer = 0{
+girofogo = false
+}
+
+	if coldownskill > 0{
+	coldownskill -= 0.1}
+
+
+if tempo = 14.2{
+	dash = false
+	obj_player.veloc_atual = 0
+	instance_deactivate_all(true)
+obj_player.visible = false
+instance_activate_object(obj_player)
+instance_create_layer(obj_player.x + 2,obj_player.y,"Instances",obj_transition)
+}else if tempo = 1{
+instance_destroy(obj_transition)
+instance_activate_all()
+obj_player.visible = true
+obj_player.veloc_atual = 1
+dash = true
+}
+
+if tempo > 0{
+tempo-= 0.1
+}
+
+
+}
+
+if keyboard_check_pressed(ord("O")){
+slimeballazul += 1
+}
+
+if piscando=1 and piscando_alarm=1{
+	alarm[2]= 2
+piscando_alarm=0}
+
+depth = -y
+
+
+if(kb_spd>0){
+    kb_spd-=kb_dec;
+    x+=lengthdir_x(kb_spd,kb_dir);
+    y+=lengthdir_y(kb_spd,kb_dir);
+    //You may need to handle some collision stuff here to prevent going into other objects or walls.
+}
+
+
+if keyboard_check_pressed(ord("J")) and secret = false{
+	cheat = 2
+	}
+	
+	if cheat > 0 and keyboard_check_pressed(ord("O")){
+	cheat2 = 2
+	}
+	
+	if cheat > 0 and cheat2 > 0 and keyboard_check_pressed(ord("N")){
+		xp = 100000
+	arma = 1
+	espada = true
+	arco = true
+	moedas += 100
+	secret = true
+	pocoes = 100
+	giro = true
+	bullet = 10
+	}
+
+if tempo > 0 {
+tempo -=0.1
+}
+
+
+if cheat >0 {
+cheat -= 0.1
+}
+if cheat2 > 0{
+cheat2 -= 0.1
+}
+
+#region Animação De Movimento
+
+if keyboard_check(ord("W")) and keyboard_check(ord("A")) and keyboard_check(ord("D")) and keyboard_check(ord("S")) and anima = false and rodando = false{
+if keyboard_check_pressed(ord("D")) and anima = false{
+obj_player.sprite_index = spr_player_respirando_direita;
+andando = true
+}else if keyboard_check_pressed(ord("A")) and anima = false{
+obj_player.sprite_index = spr_player_respirando_esquerda;
+andando = true
+}else if keyboard_check_pressed(ord("W")){
+obj_player.sprite_index = spr_player_respirando_cima;
+}else if keyboard_check_pressed(ord("S")){
+obj_player.sprite_index = spr_player_respirando_frente;
+}}else if keyboard_check(ord("W")) and keyboard_check(ord("A")) and keyboard_check(ord("D")) and anima = false{
+obj_player.sprite_index = spr_player_andando_cima;
+andando = true
+}else if keyboard_check(ord("S")) and keyboard_check(ord("A")) and keyboard_check(ord("D")) and anima = false{
+obj_player.sprite_index = spr_player_andando_baixo;
+andando = true
+}else if  keyboard_check(ord("D")) and keyboard_check(ord("A")) and anima = false{
+if keyboard_check_pressed(ord("D")){
+obj_player.sprite_index = spr_player_respirando_direita;
+}else if keyboard_check_pressed(ord("A")){
+obj_player.sprite_index = spr_player_respirando_esquerda;
+}else if keyboard_check_released(ord("W")){
+obj_player.sprite_index = spr_player_respirando_cima;	
+}else if keyboard_check_released(ord("S")){
+obj_player.sprite_index = spr_player_respirando_frente;
+}}else if  keyboard_check(ord("W")) and keyboard_check(ord("S")) and anima = false{
+if keyboard_check(ord("D")) and anima = false{
+obj_player.sprite_index = spr_player_andando_direita;
+andando = true
+}else if keyboard_check(ord("A")) and anima = false{
+obj_player.sprite_index = spr_player_andando_esquerda;
+andando = true
+}else if keyboard_check_pressed(ord("W")){
+obj_player.sprite_index = spr_player_respirando_cima;
+}else if keyboard_check_pressed(ord("S")){
+obj_player.sprite_index = spr_player_respirando_frente;
+}if keyboard_check_released(ord("D")){
+obj_player.sprite_index = spr_player_respirando_direita;
+}else if keyboard_check_released(ord("A")){
+obj_player.sprite_index = spr_player_respirando_esquerda;
+}
+}else if keyboard_check(ord("D")) and anima = false{
+obj_player.sprite_index = spr_player_andando_direita;
+andando = true
+}else if keyboard_check(ord("A")) and anima = false{
+obj_player.sprite_index = spr_player_andando_esquerda;
+andando = true
+}else if keyboard_check(ord("W")) and anima = false{
+obj_player.sprite_index = spr_player_andando_cima;
+andando = true
+}else if keyboard_check(ord("S")) and anima = false{
+obj_player.sprite_index = spr_player_andando_baixo;
+andando = true
+}else{
+andando = false
+}
+
+
+if keyboard_check_released(ord("D")) and anima = false and andando = false{
+obj_player.sprite_index = spr_player_respirando_direita
+}else if keyboard_check_released(ord("A")) and anima = false and andando = false{
+obj_player.sprite_index = spr_player_respirando_esquerda
+}else if keyboard_check_released(ord("W")) and anima = false and andando = false{
+obj_player.sprite_index = spr_player_respirando_cima
+}else if keyboard_check_released(ord("S")) and anima = false and andando = false{
+obj_player.sprite_index = spr_player_respirando_frente
+}
+
+#endregion
+
+//-------------------------------------------------//
+if vida <= 0 {
+	if boss = true{
+instance_deactivate_all(true)
+audio_stop_all()
+instance_create_layer(self.x,self.y,"Instances_1",obj_player_morrendo)
+instance_create_layer(x/room_height, y/room_width,"Instances_1",obj_death_boss)
+instance_create_layer(x/room_height + 177, y/room_width + 148,"Instances_1",obj_botao_restart)
+audio_play_sound(Afterlife,1,false)
+	}
+	
+	if boss = false{	
+	instance_deactivate_all(true)
+	audio_stop_all()
+	instance_activate_object(obj_player)
+	instance_create_layer(self.x,self.y,"Instances_1",obj_death)
+	instance_create_layer(self.x,self.y,"Instances_1",obj_player_morrendo)
+	instance_create_layer(self.x,self.y + 50,"Instances_1",obj_botao_restart)
+	instance_deactivate_object(obj_player)
+	audio_play_sound(Afterlife,1,false)
+	}
+	sombra = false;
+instance_destroy(obj_player)
+}
+
+//-------------------------------------------------//
+
+if xp >= max_xp {
+sobra_xp = xp - max_xp
+max_xp += 100
+level += 1
+dano += 0.1
+xp = sobra_xp;
+max_vida +=1; 
+max_estamina +=10;
+
+}
+
+//-------------------------------------------------//
+///
+
+if sombra = true{
+instance_create_layer(obj_player.x,obj_player.y + 11,"Instances",obj_sombra)
+}
+-----------------------------------------------------------------------------------
+
+
+   
+   
